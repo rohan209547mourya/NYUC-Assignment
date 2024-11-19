@@ -39,74 +39,77 @@ const Register: React.FC = () => {
     }));
   };
 
-  async function handleImageUpload(): Promise<string | null> {
+  async function handleImageUpload(): Promise<string> {
+    if (!registrationData.chooseFile) {
+      throw new Error('No file selected');
+    }
+
     const formData = new FormData();
     formData.append('file', registrationData.chooseFile as Blob);
     formData.append('upload_preset', 'ml_default');
   
-    try {
-      const res = await fetch('https://api.cloudinary.com/v1_1/dlku39g5z/image/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.secure_url) {
-        return data.secure_url;
-      } else {
-        console.error('Failed to upload image');
-        return null;
-      }
-    } catch (err) {
-      console.error('Error uploading image:', err);
-      return null;
+    const res = await fetch('https://api.cloudinary.com/v1_1/dlku39g5z/image/upload', {
+      method: 'POST',
+      body: formData,
+    });
+    
+    if (!res.ok) {
+      throw new Error('Failed to upload image');
     }
+
+    const data = await res.json();
+    if (!data.secure_url) {
+      throw new Error('No secure URL received from upload');
+    }
+
+    return data.secure_url;
   }
   
+  const handleRegistration = async (imageUrl: string) => {
+    const response = await fetch('https://nyuc-assignment.onrender.com/api/user/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: registrationData.name,
+        email: registrationData.email,
+        mobile: registrationData.mobile,
+        password: registrationData.password,
+        imageUrl: imageUrl,
+      }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || 'Failed to register');
+    }
+
+    return await response.json();
+  };
+
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsloading(true);
   
     try {
       if (registrationData.password !== registrationData.confirmPassword) {
-        alert('Passwords do not match');
-        setIsloading(false);
-        return;
+        throw new Error('Passwords do not match');
       }
-  
-      let uploadedImageUrl = null;
-      if (registrationData.chooseFile) {
-        uploadedImageUrl = await handleImageUpload();
-      }
-  
-      const response = await fetch('https://nyuc-assignment.onrender.com/api/user/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: registrationData.name,
-          email: registrationData.email,
-          mobile: registrationData.mobile,
-          password: registrationData.password,
-          imageUrl: uploadedImageUrl,
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        alert(data.message);
-        navigate('/auth/login');
-      } else {
-        throw new Error(data.message || 'Failed to register');
-      }
-    } catch (error: any) {
-      alert(error.message);
+
+      const imageUrl = await handleImageUpload();
+      
+      const registrationResponse = await handleRegistration(imageUrl);
+      
+      alert(registrationResponse.message);
+      navigate('/auth/login');
+      
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'An unexpected error occurred');
     } finally {
       setIsloading(false);
     }
   };
-  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
