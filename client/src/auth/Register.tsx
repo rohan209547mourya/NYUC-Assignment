@@ -14,7 +14,6 @@ interface IRegistrationData {
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsloading] = useState<boolean | undefined>(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [registrationData, setRegistrationData] = useState<IRegistrationData>({
     name: '',
     email: '',
