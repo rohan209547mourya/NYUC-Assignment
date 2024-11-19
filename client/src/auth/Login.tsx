@@ -3,7 +3,7 @@ import Input from '../components/Input';
 import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
-  const [isLoading, setIsloading] = useState(false); // Use only `boolean` for better state management
+  const [isLoading, setIsloading] = useState(false); 
   const navigate = useNavigate();
   const [loginData, setLoginData] = useState({
     email: '',
@@ -20,16 +20,16 @@ const Login: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsloading(true); // Disable button after form submission starts
+    setIsloading(true);
 
     if (!loginData.email || !loginData.password) {
       alert('Please fill all the fields');
-      setIsloading(false); // Re-enable button if validation fails
+      setIsloading(false); 
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/user/login', {
+      const response = await fetch('https://nyuc-assignment.onrender.com/api/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,8 +46,8 @@ const Login: React.FC = () => {
 
       const data = await response.json();
       alert('Login successful!');
-      localStorage.setItem('data', JSON.stringify(data.user)); // Save user data
-      navigate('/profile'); // Redirect to profile page
+      localStorage.setItem('data', JSON.stringify(data.user)); 
+      navigate('/profile'); 
     } catch (error) {
       if (error instanceof Error) {
         alert(error.message || 'An error occurred');
@@ -55,7 +55,7 @@ const Login: React.FC = () => {
         alert('An error occurred');
       }
     } finally {
-      setIsloading(false); // Re-enable the button
+      setIsloading(false); 
     }
   };
 
@@ -91,14 +91,14 @@ const Login: React.FC = () => {
 
         <button
           type="submit"
-          disabled={isLoading} // Disable button while `isLoading` is true
+          disabled={isLoading} 
           className={`w-full py-3 font-semibold text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${
             isLoading
               ? 'bg-gray-500 cursor-not-allowed'
               : 'bg-blue-500 hover:bg-blue-600 focus:ring-blue-400'
           }`}
         >
-          {isLoading ? 'Logging in...' : 'Login'} {/* Show loading text */}
+          {isLoading ? 'Logging in...' : 'Login'}
         </button>
       </form>
     </div>
